@@ -11,7 +11,7 @@ This will be a walkthrough tutorial on how to configure Active Directory on a vi
 - Microsoft Azure (Virtual Machines/Compute)
 - Remote Desktop
 - Active Directory Domain Services
-- PowerShell
+
 
 <h2>Operating Systems Used </h2>
 
@@ -77,5 +77,87 @@ Once the Dc has been created, Azure will automatically assign an ip address from
 <h3> Step 3:</h3>
 
 <p> Now that our DC has been configured, we will need to set up a Client-PC. To do this, the steps are essentially the same as they are for setting up the DC virtual machine. However, instead of Windows Server, we will be using Windows 10 Pro and the ip address for this VM will remain dynamic. </p>
+
+
+<h3> Step 4:</h3>
+
+<p> Now that the DC and Client PC’s have been setup, we can remote into them using remote desktop. However, we need to make sure both VM’s can communicate with one another. We’ll need to enable ICMPv4 in the firewall settings of the DC. To do this, go over to search in the taskbar and type in “mstsc” or “remote dsctop”  and right click it to run as an administrator. Go over to the DC virtual machine in Azure and copy the public IP address. 
+To log in, we well use the log in credentials we made for the DC virtual machine first. 
+Next, we will then connect to the Client PC’s remote desktop. Before we reconfigure any firewall settings, we will test to see if we receive a ping back from the DC. To test this we will use the ping command in the command prompt of the Client PC. 
+<br>
+Ping -t 10.2.0.4. Here we will observe that the connection will time out. This is because ICMPv4 traffic  needs to be enabled on the Domain controller. 
+</br>
+<a href="https://imgur.com/W5fAHgi"><img src="https://i.imgur.com/W5fAHgi.png" title="source: imgur.com" /></a>
+<br>
+
+<p>To do this, we’ll head back over to the DC. </p>
+
+
+</p>
+
+<h3> Step 5:</h3>
+
+<p> In the DC virtual machine, type in “wf.msc” in the search bar. Right click Windows Defender Firewall and run as administrator. Next, select “Inbound Rules” and sort the data by protocol. Search for ICMPv4 and enable all ICMPv4 rules. Once enabled, navigate over to the Client PC. You should see a successful reply from the DC on the Client PC now. </p>
+
+<a href="https://imgur.com/utIhtV9"><img src="https://i.imgur.com/utIhtV9.png" title="source: imgur.com" /></a>
+
+<a href="https://imgur.com/l5fWILV"><img src="https://i.imgur.com/l5fWILV.png" title="source: imgur.com" /></a>
+
+
+
+<h3> Step 6:</h3>
+
+<p> Now that we know we can successfully ping the domain controller we can install and configure Active Directory Services on the DC. Navigate back to the DC and open “Server Manager”, then click on “Add roles and features” and turn on “Active Directory Domain Services”  and add on any additional features. Proceed to install. </p>
+
+<a href="https://imgur.com/QcN5Ai7"><img src="https://i.imgur.com/QcN5Ai7.png" title="source: imgur.com" /></a>
+
+
+<p> Once Active Directory has been installed, we will need to turn the server into a domain controller. To do this, navigate to the flag at the top and click “Promote this server to a domain controller”. </p>
+
+<a href="https://imgur.com/koxt8ql"><img src="https://i.imgur.com/koxt8ql.png" title="source: imgur.com" /></a>
+
+<p>At the Deployment Configuration window, you’ll want to select “Add a new forrest” and create a root domain name. For this lab, we’ll call it “mydomain.com”. Select next, and set up a DSRM password. Next, proceed with the rest of the installation. Once everything is installed, you’ll need to restar the DC VM and log back in. </p>
+
+<h3> Step 7:</h3>
+
+<p>Once the DC VM has restarted, you’ll log in remotely by using  mydomain.com\user. This is necessary now that are domain controller is active. Next, proceed to type in the usual password.  </p>
+
+<h3> Step 8:</h3>
+
+<p>Now that Active Directory is running, we can creat a few Orginizational Units or OU’s. To do this, go to tools and select Active Directory Users and Coputers. Navigate to mydomain.com over to the left. We will create two Organizational Units named “_EMPLOYEES” and the other “_ADMINS”</p>
+
+
+<a href="https://imgur.com/kuTbUVB"><img src="https://i.imgur.com/kuTbUVB.png" title="source: imgur.com" /></a>
+
+<a href="https://imgur.com/LjxUzbD"><img src="https://i.imgur.com/LjxUzbD.png" title="source: imgur.com" /></a>
+
+<p> Aftwards, we can proceed to creat a new admin in the “_ADMINS_” folder. For this lab, we will call her Jane Doe. We’ll give her a user name of “JDoe” select next and setup a password. Uncheck, uncheck "User must change password at next logon". </p>
+
+<a href="https://imgur.com/arbC79b"><img src="https://i.imgur.com/arbC79b.png" title="source: imgur.com" /></a>
+
+
+<h3> Step 8:</h3>
+
+<p> Now that we have a new admin, we can adjust her permissions. We want to add Jane to the Domain Admin. To do that, we’ll need to right click her name and go to Properties. Then, select Member Of and Add. Type “Domain” in the object box, then hit Check Names. Select Domain Admins and hit OK and then Apply. We will then proceed to logout of the DC VM and log back in as Jane Doe. </p>
+
+<a href="https://imgur.com/X4WlBUN"><img src="https://i.imgur.com/X4WlBUN.png" title="source: imgur.com" /></a>
+
+<a href="https://imgur.com/Vf0iXM9"><img src="https://i.imgur.com/Vf0iXM9.png" title="source: imgur.com" /></a>
+
+<h3> Step 9:</h3>
+
+<p> Next, we’ll need to configure the Clint-PC’s DNS server to the private IP address of the DC. This will allow the Client PC to be joined to mydomain.com. To do this, go to the Azure portal. Select the virtual machine for the Client PC. Select Networking under Settings. Afterwards, click the Clint PC’s NIC. Then, over to the left, under setting, select DNS servers. Select custom and type in the private ip address of the DC virtual machine. Save it and restart the Client PC from the Azure portal. </p>
+
+<a href="https://imgur.com/nDiZv1b"><img src="https://i.imgur.com/nDiZv1b.png" title="source: imgur.com" /></a>
+
+<h3> Step 10:</h3>
+
+<p> Log back into the Client PC and go over the start menu, right click, and select Settings. From there, select System, About, and select “Rename this PC (advanced)” . Click “Change” and select the domain radio button. Type in “mydomain.com” and click OK. There, a log in window will appear, this is where you will type in the credentials of your admin user. Select OK and a prompt should appear notifying you that you have successfully connected to the domain. </p>
+<a href="https://imgur.com/6BGE33g"><img src="https://i.imgur.com/6BGE33g.png" title="source: imgur.com" /></a>
+
+<a href="https://imgur.com/bPOUIZX"><img src="https://i.imgur.com/bPOUIZX.png" title="source: imgur.com" /></a>
+
+<a href="https://imgur.com/PLJ4Vef"><img src="https://i.imgur.com/PLJ4Vef.png" title="source: imgur.com" /></a>
+
 
 
