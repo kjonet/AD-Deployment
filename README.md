@@ -2,7 +2,7 @@
 <img src="https://i.imgur.com/pU5A58S.png" alt="Microsoft Active Directory Logo"/>
 </p>
 
-<h1>On-Premisis Active Directory Deployment Configuration</h1>
+<h1>On-Premises Active Directory Deployment Configuration</h1>
 This will be a walkthrough tutorial on how to configure Active Directory on a virtual machine using the cloud based platform, Microsoft Azure.Active Directory is a powerful tool that can be used to manage and centralize numour dives on a network. This is a great tool to control access to resources on a large scale. <br />
 
 
